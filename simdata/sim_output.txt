@@ -1,2 +1,0 @@
-0: minimum distance: 2.64802977617912 False
-1: minimum distance: 2.64802977617912 False

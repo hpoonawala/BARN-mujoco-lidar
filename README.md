@@ -55,9 +55,8 @@ mjpython visualize_sim.py <world_number>
 Unlike `sim_world.py`, the control frequency is the same as the simulation rate. Also, no simulation data are stored. 
 
 ## Odometry
-The sequence of scans stored after using `sim_world.py` can be used to estimate the path of the robot through scan matching of consecutive scans. The odometry script is not currently not optimized. Also, no map is generated.  
+The sequence of scans stored after using `sim_world.py` can be used to estimate the path of the robot through scan matching of consecutive scans. The odometry script is not currently not optimized. Also, no map is generated.  To compute the path, run:
 
-The `sim_world.py` file generates three files with names containing the `<world_number>`. These can be processed to generate images using:
 ```
 python3 odometry.py <world_number>
 ```
