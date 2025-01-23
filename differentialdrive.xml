@@ -1,0 +1,411 @@
+<mujoco model="diff drive lidar">
+	<option gravity="0 0 -9.81" />
+<visual>
+    <rgba rangefinder="1 1 0.1 0.1"/>
+    <map znear=".005" zfar="20"/>
+  </visual>
+	<worldbody>
+		<light diffuse=".5 .5 .5" pos="0 0 3" dir="0 0 -1"/>
+		<include name="s" file="currentxml.xml" resolve_relative="base" />
+		<!-- <!-1- Leaving walls out creates some issues, the cut-off needs something to be hit. -1-> -->
+		<geom name="left_wall" type="box" size="0.1 50 1" pos="-30 0 1" euler = "0 0 -0" rgba="0.8 0.2 0.2 1" />
+        <geom name="right_wall" type="box" size="0.1 50 1" pos="25 0 1" euler = "0 0 -0" rgba="0.2 0.8 0.2 1" />
+		<geom name="top_wall" type="box" size="50 0.1  1" pos="0 30 1" rgba="0.8 0.2 0.2 1" />
+        <geom name="bottom_wall" type="box" size="50 0.1 1" pos=" 0 -30 1" rgba="0.2 0.8 0.2 1" />
+
+		<geom type="plane" size="5 5 0.1" rgba=".9 .9 .9 1"/>
+		<body name = "chassis" pos="0 4 0.2" euler='0 0 0'>
+			<joint type="free"/>
+			<geom type="box" size=".2 .2 .05" rgba=".9 .9 0 1"/>
+			<site name="marker" pos = "0.0 0 0.2 " size="0.1" />
+			<body name="sphereWheel" pos = "-0.3 0 -0.1" euler = "0 0 0">
+
+				<joint name = "sphere-wheel" type="ball" axis="0 0 -1"/>
+				<geom type="sphere" size="0.1" rgba="0 .9 0 1"/>
+			</body>
+			<body name="left-tire" pos="0 0.3 -0.0" euler='90 0 0'>
+				<joint name = "left-wheel" type="hinge" axis="0 0 -1"/>
+				<geom type="cylinder" size=".2 0.05" rgba="0 .9 0 1"/>
+			</body>
+			<body name="right-tire" pos="0 -0.3 -0.0" euler='90 0 0'>
+				<joint name = "right-wheel" type="hinge" axis="0 0 -1"/>
+				<geom type="cylinder" size=".2 0.05" rgba="0 .9 0 1"/>
+			</body>
+			<body name="lidar" euler = "0 90 0">
+				<replicate count="360"  sep="-" offset="0 0 0" euler="1. 0 0">
+					<site name="lidar" size="0.01" pos="-0.3 0.0 0.0" euler="0.0 0.0 90.0"/>
+				</replicate>
+			</body>
+		</body>
+	</worldbody>
+	<sensor>
+		<rangefinder site="lidar-000" name="range0" cutoff="20.0"/>
+		<rangefinder site="lidar-001" name="range1" cutoff="20.0"/>
+		<rangefinder site="lidar-002" name="range2" cutoff="20.0"/>
+		<rangefinder site="lidar-003" name="range3" cutoff="20.0"/>
+		<rangefinder site="lidar-004" name="range4" cutoff="20.0"/>
+		<rangefinder site="lidar-005" name="range5" cutoff="20.0"/>
+		<rangefinder site="lidar-006" name="range6" cutoff="20.0"/>
+		<rangefinder site="lidar-007" name="range7" cutoff="20.0"/>
+		<rangefinder site="lidar-008" name="range8" cutoff="20.0"/>
+		<rangefinder site="lidar-009" name="range9" cutoff="20.0"/>
+		<rangefinder site="lidar-010" name="range10" cutoff="20.0"/>
+		<rangefinder site="lidar-011" name="range11" cutoff="20.0"/>
+		<rangefinder site="lidar-012" name="range12" cutoff="20.0"/>
+		<rangefinder site="lidar-013" name="range13" cutoff="20.0"/>
+		<rangefinder site="lidar-014" name="range14" cutoff="20.0"/>
+		<rangefinder site="lidar-015" name="range15" cutoff="20.0"/>
+		<rangefinder site="lidar-016" name="range16" cutoff="20.0"/>
+		<rangefinder site="lidar-017" name="range17" cutoff="20.0"/>
+		<rangefinder site="lidar-018" name="range18" cutoff="20.0"/>
+		<rangefinder site="lidar-019" name="range19" cutoff="20.0"/>
+		<rangefinder site="lidar-020" name="range20" cutoff="20.0"/>
+		<rangefinder site="lidar-021" name="range21" cutoff="20.0"/>
+		<rangefinder site="lidar-022" name="range22" cutoff="20.0"/>
+		<rangefinder site="lidar-023" name="range23" cutoff="20.0"/>
+		<rangefinder site="lidar-024" name="range24" cutoff="20.0"/>
+		<rangefinder site="lidar-025" name="range25" cutoff="20.0"/>
+		<rangefinder site="lidar-026" name="range26" cutoff="20.0"/>
+		<rangefinder site="lidar-027" name="range27" cutoff="20.0"/>
+		<rangefinder site="lidar-028" name="range28" cutoff="20.0"/>
+		<rangefinder site="lidar-029" name="range29" cutoff="20.0"/>
+		<rangefinder site="lidar-030" name="range30" cutoff="20.0"/>
+		<rangefinder site="lidar-031" name="range31" cutoff="20.0"/>
+		<rangefinder site="lidar-032" name="range32" cutoff="20.0"/>
+		<rangefinder site="lidar-033" name="range33" cutoff="20.0"/>
+		<rangefinder site="lidar-034" name="range34" cutoff="20.0"/>
+		<rangefinder site="lidar-035" name="range35" cutoff="20.0"/>
+		<rangefinder site="lidar-036" name="range36" cutoff="20.0"/>
+		<rangefinder site="lidar-037" name="range37" cutoff="20.0"/>
+		<rangefinder site="lidar-038" name="range38" cutoff="20.0"/>
+		<rangefinder site="lidar-039" name="range39" cutoff="20.0"/>
+		<rangefinder site="lidar-040" name="range40" cutoff="20.0"/>
+		<rangefinder site="lidar-041" name="range41" cutoff="20.0"/>
+		<rangefinder site="lidar-042" name="range42" cutoff="20.0"/>
+		<rangefinder site="lidar-043" name="range43" cutoff="20.0"/>
+		<rangefinder site="lidar-044" name="range44" cutoff="20.0"/>
+		<rangefinder site="lidar-045" name="range45" cutoff="20.0"/>
+		<rangefinder site="lidar-046" name="range46" cutoff="20.0"/>
+		<rangefinder site="lidar-047" name="range47" cutoff="20.0"/>
+		<rangefinder site="lidar-048" name="range48" cutoff="20.0"/>
+		<rangefinder site="lidar-049" name="range49" cutoff="20.0"/>
+		<rangefinder site="lidar-050" name="range50" cutoff="20.0"/>
+		<rangefinder site="lidar-051" name="range51" cutoff="20.0"/>
+		<rangefinder site="lidar-052" name="range52" cutoff="20.0"/>
+		<rangefinder site="lidar-053" name="range53" cutoff="20.0"/>
+		<rangefinder site="lidar-054" name="range54" cutoff="20.0"/>
+		<rangefinder site="lidar-055" name="range55" cutoff="20.0"/>
+		<rangefinder site="lidar-056" name="range56" cutoff="20.0"/>
+		<rangefinder site="lidar-057" name="range57" cutoff="20.0"/>
+		<rangefinder site="lidar-058" name="range58" cutoff="20.0"/>
+		<rangefinder site="lidar-059" name="range59" cutoff="20.0"/>
+		<rangefinder site="lidar-060" name="range60" cutoff="20.0"/>
+		<rangefinder site="lidar-061" name="range61" cutoff="20.0"/>
+		<rangefinder site="lidar-062" name="range62" cutoff="20.0"/>
+		<rangefinder site="lidar-063" name="range63" cutoff="20.0"/>
+		<rangefinder site="lidar-064" name="range64" cutoff="20.0"/>
+		<rangefinder site="lidar-065" name="range65" cutoff="20.0"/>
+		<rangefinder site="lidar-066" name="range66" cutoff="20.0"/>
+		<rangefinder site="lidar-067" name="range67" cutoff="20.0"/>
+		<rangefinder site="lidar-068" name="range68" cutoff="20.0"/>
+		<rangefinder site="lidar-069" name="range69" cutoff="20.0"/>
+		<rangefinder site="lidar-070" name="range70" cutoff="20.0"/>
+		<rangefinder site="lidar-071" name="range71" cutoff="20.0"/>
+		<rangefinder site="lidar-072" name="range72" cutoff="20.0"/>
+		<rangefinder site="lidar-073" name="range73" cutoff="20.0"/>
+		<rangefinder site="lidar-074" name="range74" cutoff="20.0"/>
+		<rangefinder site="lidar-075" name="range75" cutoff="20.0"/>
+		<rangefinder site="lidar-076" name="range76" cutoff="20.0"/>
+		<rangefinder site="lidar-077" name="range77" cutoff="20.0"/>
+		<rangefinder site="lidar-078" name="range78" cutoff="20.0"/>
+		<rangefinder site="lidar-079" name="range79" cutoff="20.0"/>
+		<rangefinder site="lidar-080" name="range80" cutoff="20.0"/>
+		<rangefinder site="lidar-081" name="range81" cutoff="20.0"/>
+		<rangefinder site="lidar-082" name="range82" cutoff="20.0"/>
+		<rangefinder site="lidar-083" name="range83" cutoff="20.0"/>
+		<rangefinder site="lidar-084" name="range84" cutoff="20.0"/>
+		<rangefinder site="lidar-085" name="range85" cutoff="20.0"/>
+		<rangefinder site="lidar-086" name="range86" cutoff="20.0"/>
+		<rangefinder site="lidar-087" name="range87" cutoff="20.0"/>
+		<rangefinder site="lidar-088" name="range88" cutoff="20.0"/>
+		<rangefinder site="lidar-089" name="range89" cutoff="20.0"/>
+		<rangefinder site="lidar-090" name="range90" cutoff="20.0"/>
+		<rangefinder site="lidar-091" name="range91" cutoff="20.0"/>
+		<rangefinder site="lidar-092" name="range92" cutoff="20.0"/>
+		<rangefinder site="lidar-093" name="range93" cutoff="20.0"/>
+		<rangefinder site="lidar-094" name="range94" cutoff="20.0"/>
+		<rangefinder site="lidar-095" name="range95" cutoff="20.0"/>
+		<rangefinder site="lidar-096" name="range96" cutoff="20.0"/>
+		<rangefinder site="lidar-097" name="range97" cutoff="20.0"/>
+		<rangefinder site="lidar-098" name="range98" cutoff="20.0"/>
+		<rangefinder site="lidar-099" name="range99" cutoff="20.0"/>
+		<rangefinder site="lidar-100" name="range100" cutoff="20.0"/>
+		<rangefinder site="lidar-101" name="range101" cutoff="20.0"/>
+		<rangefinder site="lidar-102" name="range102" cutoff="20.0"/>
+		<rangefinder site="lidar-103" name="range103" cutoff="20.0"/>
+		<rangefinder site="lidar-104" name="range104" cutoff="20.0"/>
+		<rangefinder site="lidar-105" name="range105" cutoff="20.0"/>
+		<rangefinder site="lidar-106" name="range106" cutoff="20.0"/>
+		<rangefinder site="lidar-107" name="range107" cutoff="20.0"/>
+		<rangefinder site="lidar-108" name="range108" cutoff="20.0"/>
+		<rangefinder site="lidar-109" name="range109" cutoff="20.0"/>
+		<rangefinder site="lidar-110" name="range110" cutoff="20.0"/>
+		<rangefinder site="lidar-111" name="range111" cutoff="20.0"/>
+		<rangefinder site="lidar-112" name="range112" cutoff="20.0"/>
+		<rangefinder site="lidar-113" name="range113" cutoff="20.0"/>
+		<rangefinder site="lidar-114" name="range114" cutoff="20.0"/>
+		<rangefinder site="lidar-115" name="range115" cutoff="20.0"/>
+		<rangefinder site="lidar-116" name="range116" cutoff="20.0"/>
+		<rangefinder site="lidar-117" name="range117" cutoff="20.0"/>
+		<rangefinder site="lidar-118" name="range118" cutoff="20.0"/>
+		<rangefinder site="lidar-119" name="range119" cutoff="20.0"/>
+		<rangefinder site="lidar-120" name="range120" cutoff="20.0"/>
+		<rangefinder site="lidar-121" name="range121" cutoff="20.0"/>
+		<rangefinder site="lidar-122" name="range122" cutoff="20.0"/>
+		<rangefinder site="lidar-123" name="range123" cutoff="20.0"/>
+		<rangefinder site="lidar-124" name="range124" cutoff="20.0"/>
+		<rangefinder site="lidar-125" name="range125" cutoff="20.0"/>
+		<rangefinder site="lidar-126" name="range126" cutoff="20.0"/>
+		<rangefinder site="lidar-127" name="range127" cutoff="20.0"/>
+		<rangefinder site="lidar-128" name="range128" cutoff="20.0"/>
+		<rangefinder site="lidar-129" name="range129" cutoff="20.0"/>
+		<rangefinder site="lidar-130" name="range130" cutoff="20.0"/>
+		<rangefinder site="lidar-131" name="range131" cutoff="20.0"/>
+		<rangefinder site="lidar-132" name="range132" cutoff="20.0"/>
+		<rangefinder site="lidar-133" name="range133" cutoff="20.0"/>
+		<rangefinder site="lidar-134" name="range134" cutoff="20.0"/>
+		<rangefinder site="lidar-135" name="range135" cutoff="20.0"/>
+		<rangefinder site="lidar-136" name="range136" cutoff="20.0"/>
+		<rangefinder site="lidar-137" name="range137" cutoff="20.0"/>
+		<rangefinder site="lidar-138" name="range138" cutoff="20.0"/>
+		<rangefinder site="lidar-139" name="range139" cutoff="20.0"/>
+		<rangefinder site="lidar-140" name="range140" cutoff="20.0"/>
+		<rangefinder site="lidar-141" name="range141" cutoff="20.0"/>
+		<rangefinder site="lidar-142" name="range142" cutoff="20.0"/>
+		<rangefinder site="lidar-143" name="range143" cutoff="20.0"/>
+		<rangefinder site="lidar-144" name="range144" cutoff="20.0"/>
+		<rangefinder site="lidar-145" name="range145" cutoff="20.0"/>
+		<rangefinder site="lidar-146" name="range146" cutoff="20.0"/>
+		<rangefinder site="lidar-147" name="range147" cutoff="20.0"/>
+		<rangefinder site="lidar-148" name="range148" cutoff="20.0"/>
+		<rangefinder site="lidar-149" name="range149" cutoff="20.0"/>
+		<rangefinder site="lidar-150" name="range150" cutoff="20.0"/>
+		<rangefinder site="lidar-151" name="range151" cutoff="20.0"/>
+		<rangefinder site="lidar-152" name="range152" cutoff="20.0"/>
+		<rangefinder site="lidar-153" name="range153" cutoff="20.0"/>
+		<rangefinder site="lidar-154" name="range154" cutoff="20.0"/>
+		<rangefinder site="lidar-155" name="range155" cutoff="20.0"/>
+		<rangefinder site="lidar-156" name="range156" cutoff="20.0"/>
+		<rangefinder site="lidar-157" name="range157" cutoff="20.0"/>
+		<rangefinder site="lidar-158" name="range158" cutoff="20.0"/>
+		<rangefinder site="lidar-159" name="range159" cutoff="20.0"/>
+		<rangefinder site="lidar-160" name="range160" cutoff="20.0"/>
+		<rangefinder site="lidar-161" name="range161" cutoff="20.0"/>
+		<rangefinder site="lidar-162" name="range162" cutoff="20.0"/>
+		<rangefinder site="lidar-163" name="range163" cutoff="20.0"/>
+		<rangefinder site="lidar-164" name="range164" cutoff="20.0"/>
+		<rangefinder site="lidar-165" name="range165" cutoff="20.0"/>
+		<rangefinder site="lidar-166" name="range166" cutoff="20.0"/>
+		<rangefinder site="lidar-167" name="range167" cutoff="20.0"/>
+		<rangefinder site="lidar-168" name="range168" cutoff="20.0"/>
+		<rangefinder site="lidar-169" name="range169" cutoff="20.0"/>
+		<rangefinder site="lidar-170" name="range170" cutoff="20.0"/>
+		<rangefinder site="lidar-171" name="range171" cutoff="20.0"/>
+		<rangefinder site="lidar-172" name="range172" cutoff="20.0"/>
+		<rangefinder site="lidar-173" name="range173" cutoff="20.0"/>
+		<rangefinder site="lidar-174" name="range174" cutoff="20.0"/>
+		<rangefinder site="lidar-175" name="range175" cutoff="20.0"/>
+		<rangefinder site="lidar-176" name="range176" cutoff="20.0"/>
+		<rangefinder site="lidar-177" name="range177" cutoff="20.0"/>
+		<rangefinder site="lidar-178" name="range178" cutoff="20.0"/>
+		<rangefinder site="lidar-179" name="range179" cutoff="20.0"/>
+		<rangefinder site="lidar-180" name="range180" cutoff="20.0"/>
+		<rangefinder site="lidar-181" name="range181" cutoff="20.0"/>
+		<rangefinder site="lidar-182" name="range182" cutoff="20.0"/>
+		<rangefinder site="lidar-183" name="range183" cutoff="20.0"/>
+		<rangefinder site="lidar-184" name="range184" cutoff="20.0"/>
+		<rangefinder site="lidar-185" name="range185" cutoff="20.0"/>
+		<rangefinder site="lidar-186" name="range186" cutoff="20.0"/>
+		<rangefinder site="lidar-187" name="range187" cutoff="20.0"/>
+		<rangefinder site="lidar-188" name="range188" cutoff="20.0"/>
+		<rangefinder site="lidar-189" name="range189" cutoff="20.0"/>
+		<rangefinder site="lidar-190" name="range190" cutoff="20.0"/>
+		<rangefinder site="lidar-191" name="range191" cutoff="20.0"/>
+		<rangefinder site="lidar-192" name="range192" cutoff="20.0"/>
+		<rangefinder site="lidar-193" name="range193" cutoff="20.0"/>
+		<rangefinder site="lidar-194" name="range194" cutoff="20.0"/>
+		<rangefinder site="lidar-195" name="range195" cutoff="20.0"/>
+		<rangefinder site="lidar-196" name="range196" cutoff="20.0"/>
+		<rangefinder site="lidar-197" name="range197" cutoff="20.0"/>
+		<rangefinder site="lidar-198" name="range198" cutoff="20.0"/>
+		<rangefinder site="lidar-199" name="range199" cutoff="20.0"/>
+		<rangefinder site="lidar-200" name="range200" cutoff="20.0"/>
+		<rangefinder site="lidar-201" name="range201" cutoff="20.0"/>
+		<rangefinder site="lidar-202" name="range202" cutoff="20.0"/>
+		<rangefinder site="lidar-203" name="range203" cutoff="20.0"/>
+		<rangefinder site="lidar-204" name="range204" cutoff="20.0"/>
+		<rangefinder site="lidar-205" name="range205" cutoff="20.0"/>
+		<rangefinder site="lidar-206" name="range206" cutoff="20.0"/>
+		<rangefinder site="lidar-207" name="range207" cutoff="20.0"/>
+		<rangefinder site="lidar-208" name="range208" cutoff="20.0"/>
+		<rangefinder site="lidar-209" name="range209" cutoff="20.0"/>
+		<rangefinder site="lidar-210" name="range210" cutoff="20.0"/>
+		<rangefinder site="lidar-211" name="range211" cutoff="20.0"/>
+		<rangefinder site="lidar-212" name="range212" cutoff="20.0"/>
+		<rangefinder site="lidar-213" name="range213" cutoff="20.0"/>
+		<rangefinder site="lidar-214" name="range214" cutoff="20.0"/>
+		<rangefinder site="lidar-215" name="range215" cutoff="20.0"/>
+		<rangefinder site="lidar-216" name="range216" cutoff="20.0"/>
+		<rangefinder site="lidar-217" name="range217" cutoff="20.0"/>
+		<rangefinder site="lidar-218" name="range218" cutoff="20.0"/>
+		<rangefinder site="lidar-219" name="range219" cutoff="20.0"/>
+		<rangefinder site="lidar-220" name="range220" cutoff="20.0"/>
+		<rangefinder site="lidar-221" name="range221" cutoff="20.0"/>
+		<rangefinder site="lidar-222" name="range222" cutoff="20.0"/>
+		<rangefinder site="lidar-223" name="range223" cutoff="20.0"/>
+		<rangefinder site="lidar-224" name="range224" cutoff="20.0"/>
+		<rangefinder site="lidar-225" name="range225" cutoff="20.0"/>
+		<rangefinder site="lidar-226" name="range226" cutoff="20.0"/>
+		<rangefinder site="lidar-227" name="range227" cutoff="20.0"/>
+		<rangefinder site="lidar-228" name="range228" cutoff="20.0"/>
+		<rangefinder site="lidar-229" name="range229" cutoff="20.0"/>
+		<rangefinder site="lidar-230" name="range230" cutoff="20.0"/>
+		<rangefinder site="lidar-231" name="range231" cutoff="20.0"/>
+		<rangefinder site="lidar-232" name="range232" cutoff="20.0"/>
+		<rangefinder site="lidar-233" name="range233" cutoff="20.0"/>
+		<rangefinder site="lidar-234" name="range234" cutoff="20.0"/>
+		<rangefinder site="lidar-235" name="range235" cutoff="20.0"/>
+		<rangefinder site="lidar-236" name="range236" cutoff="20.0"/>
+		<rangefinder site="lidar-237" name="range237" cutoff="20.0"/>
+		<rangefinder site="lidar-238" name="range238" cutoff="20.0"/>
+		<rangefinder site="lidar-239" name="range239" cutoff="20.0"/>
+		<rangefinder site="lidar-240" name="range240" cutoff="20.0"/>
+		<rangefinder site="lidar-241" name="range241" cutoff="20.0"/>
+		<rangefinder site="lidar-242" name="range242" cutoff="20.0"/>
+		<rangefinder site="lidar-243" name="range243" cutoff="20.0"/>
+		<rangefinder site="lidar-244" name="range244" cutoff="20.0"/>
+		<rangefinder site="lidar-245" name="range245" cutoff="20.0"/>
+		<rangefinder site="lidar-246" name="range246" cutoff="20.0"/>
+		<rangefinder site="lidar-247" name="range247" cutoff="20.0"/>
+		<rangefinder site="lidar-248" name="range248" cutoff="20.0"/>
+		<rangefinder site="lidar-249" name="range249" cutoff="20.0"/>
+		<rangefinder site="lidar-250" name="range250" cutoff="20.0"/>
+		<rangefinder site="lidar-251" name="range251" cutoff="20.0"/>
+		<rangefinder site="lidar-252" name="range252" cutoff="20.0"/>
+		<rangefinder site="lidar-253" name="range253" cutoff="20.0"/>
+		<rangefinder site="lidar-254" name="range254" cutoff="20.0"/>
+		<rangefinder site="lidar-255" name="range255" cutoff="20.0"/>
+		<rangefinder site="lidar-256" name="range256" cutoff="20.0"/>
+		<rangefinder site="lidar-257" name="range257" cutoff="20.0"/>
+		<rangefinder site="lidar-258" name="range258" cutoff="20.0"/>
+		<rangefinder site="lidar-259" name="range259" cutoff="20.0"/>
+		<rangefinder site="lidar-260" name="range260" cutoff="20.0"/>
+		<rangefinder site="lidar-261" name="range261" cutoff="20.0"/>
+		<rangefinder site="lidar-262" name="range262" cutoff="20.0"/>
+		<rangefinder site="lidar-263" name="range263" cutoff="20.0"/>
+		<rangefinder site="lidar-264" name="range264" cutoff="20.0"/>
+		<rangefinder site="lidar-265" name="range265" cutoff="20.0"/>
+		<rangefinder site="lidar-266" name="range266" cutoff="20.0"/>
+		<rangefinder site="lidar-267" name="range267" cutoff="20.0"/>
+		<rangefinder site="lidar-268" name="range268" cutoff="20.0"/>
+		<rangefinder site="lidar-269" name="range269" cutoff="20.0"/>
+		<rangefinder site="lidar-270" name="range270" cutoff="20.0"/>
+		<rangefinder site="lidar-271" name="range271" cutoff="20.0"/>
+		<rangefinder site="lidar-272" name="range272" cutoff="20.0"/>
+		<rangefinder site="lidar-273" name="range273" cutoff="20.0"/>
+		<rangefinder site="lidar-274" name="range274" cutoff="20.0"/>
+		<rangefinder site="lidar-275" name="range275" cutoff="20.0"/>
+		<rangefinder site="lidar-276" name="range276" cutoff="20.0"/>
+		<rangefinder site="lidar-277" name="range277" cutoff="20.0"/>
+		<rangefinder site="lidar-278" name="range278" cutoff="20.0"/>
+		<rangefinder site="lidar-279" name="range279" cutoff="20.0"/>
+		<rangefinder site="lidar-280" name="range280" cutoff="20.0"/>
+		<rangefinder site="lidar-281" name="range281" cutoff="20.0"/>
+		<rangefinder site="lidar-282" name="range282" cutoff="20.0"/>
+		<rangefinder site="lidar-283" name="range283" cutoff="20.0"/>
+		<rangefinder site="lidar-284" name="range284" cutoff="20.0"/>
+		<rangefinder site="lidar-285" name="range285" cutoff="20.0"/>
+		<rangefinder site="lidar-286" name="range286" cutoff="20.0"/>
+		<rangefinder site="lidar-287" name="range287" cutoff="20.0"/>
+		<rangefinder site="lidar-288" name="range288" cutoff="20.0"/>
+		<rangefinder site="lidar-289" name="range289" cutoff="20.0"/>
+		<rangefinder site="lidar-290" name="range290" cutoff="20.0"/>
+		<rangefinder site="lidar-291" name="range291" cutoff="20.0"/>
+		<rangefinder site="lidar-292" name="range292" cutoff="20.0"/>
+		<rangefinder site="lidar-293" name="range293" cutoff="20.0"/>
+		<rangefinder site="lidar-294" name="range294" cutoff="20.0"/>
+		<rangefinder site="lidar-295" name="range295" cutoff="20.0"/>
+		<rangefinder site="lidar-296" name="range296" cutoff="20.0"/>
+		<rangefinder site="lidar-297" name="range297" cutoff="20.0"/>
+		<rangefinder site="lidar-298" name="range298" cutoff="20.0"/>
+		<rangefinder site="lidar-299" name="range299" cutoff="20.0"/>
+		<rangefinder site="lidar-300" name="range300" cutoff="20.0"/>
+		<rangefinder site="lidar-301" name="range301" cutoff="20.0"/>
+		<rangefinder site="lidar-302" name="range302" cutoff="20.0"/>
+		<rangefinder site="lidar-303" name="range303" cutoff="20.0"/>
+		<rangefinder site="lidar-304" name="range304" cutoff="20.0"/>
+		<rangefinder site="lidar-305" name="range305" cutoff="20.0"/>
+		<rangefinder site="lidar-306" name="range306" cutoff="20.0"/>
+		<rangefinder site="lidar-307" name="range307" cutoff="20.0"/>
+		<rangefinder site="lidar-308" name="range308" cutoff="20.0"/>
+		<rangefinder site="lidar-309" name="range309" cutoff="20.0"/>
+		<rangefinder site="lidar-310" name="range310" cutoff="20.0"/>
+		<rangefinder site="lidar-311" name="range311" cutoff="20.0"/>
+		<rangefinder site="lidar-312" name="range312" cutoff="20.0"/>
+		<rangefinder site="lidar-313" name="range313" cutoff="20.0"/>
+		<rangefinder site="lidar-314" name="range314" cutoff="20.0"/>
+		<rangefinder site="lidar-315" name="range315" cutoff="20.0"/>
+		<rangefinder site="lidar-316" name="range316" cutoff="20.0"/>
+		<rangefinder site="lidar-317" name="range317" cutoff="20.0"/>
+		<rangefinder site="lidar-318" name="range318" cutoff="20.0"/>
+		<rangefinder site="lidar-319" name="range319" cutoff="20.0"/>
+		<rangefinder site="lidar-320" name="range320" cutoff="20.0"/>
+		<rangefinder site="lidar-321" name="range321" cutoff="20.0"/>
+		<rangefinder site="lidar-322" name="range322" cutoff="20.0"/>
+		<rangefinder site="lidar-323" name="range323" cutoff="20.0"/>
+		<rangefinder site="lidar-324" name="range324" cutoff="20.0"/>
+		<rangefinder site="lidar-325" name="range325" cutoff="20.0"/>
+		<rangefinder site="lidar-326" name="range326" cutoff="20.0"/>
+		<rangefinder site="lidar-327" name="range327" cutoff="20.0"/>
+		<rangefinder site="lidar-328" name="range328" cutoff="20.0"/>
+		<rangefinder site="lidar-329" name="range329" cutoff="20.0"/>
+		<rangefinder site="lidar-330" name="range330" cutoff="20.0"/>
+		<rangefinder site="lidar-331" name="range331" cutoff="20.0"/>
+		<rangefinder site="lidar-332" name="range332" cutoff="20.0"/>
+		<rangefinder site="lidar-333" name="range333" cutoff="20.0"/>
+		<rangefinder site="lidar-334" name="range334" cutoff="20.0"/>
+		<rangefinder site="lidar-335" name="range335" cutoff="20.0"/>
+		<rangefinder site="lidar-336" name="range336" cutoff="20.0"/>
+		<rangefinder site="lidar-337" name="range337" cutoff="20.0"/>
+		<rangefinder site="lidar-338" name="range338" cutoff="20.0"/>
+		<rangefinder site="lidar-339" name="range339" cutoff="20.0"/>
+		<rangefinder site="lidar-340" name="range340" cutoff="20.0"/>
+		<rangefinder site="lidar-341" name="range341" cutoff="20.0"/>
+		<rangefinder site="lidar-342" name="range342" cutoff="20.0"/>
+		<rangefinder site="lidar-343" name="range343" cutoff="20.0"/>
+		<rangefinder site="lidar-344" name="range344" cutoff="20.0"/>
+		<rangefinder site="lidar-345" name="range345" cutoff="20.0"/>
+		<rangefinder site="lidar-346" name="range346" cutoff="20.0"/>
+		<rangefinder site="lidar-347" name="range347" cutoff="20.0"/>
+		<rangefinder site="lidar-348" name="range348" cutoff="20.0"/>
+		<rangefinder site="lidar-349" name="range349" cutoff="20.0"/>
+		<rangefinder site="lidar-350" name="range350" cutoff="20.0"/>
+		<rangefinder site="lidar-351" name="range351" cutoff="20.0"/>
+		<rangefinder site="lidar-352" name="range352" cutoff="20.0"/>
+		<rangefinder site="lidar-353" name="range353" cutoff="20.0"/>
+		<rangefinder site="lidar-354" name="range354" cutoff="20.0"/>
+		<rangefinder site="lidar-355" name="range355" cutoff="20.0"/>
+		<rangefinder site="lidar-356" name="range356" cutoff="20.0"/>
+		<rangefinder site="lidar-357" name="range357" cutoff="20.0"/>
+		<rangefinder site="lidar-358" name="range358" cutoff="20.0"/>
+		<rangefinder site="lidar-359" name="range359" cutoff="20.0"/>
+	</sensor>
+	<sensor>
+		<framepos objtype="site" objname="marker"/>
+		<framequat objtype="site" objname="marker"/>
+	</sensor>
+	<actuator>
+		<velocity name="left-velocity-servo" joint="left-wheel" kv="100"/>
+		<velocity name="right-velocity-servo" joint="right-wheel" kv="100"/>
+	</actuator>
+</mujoco>
