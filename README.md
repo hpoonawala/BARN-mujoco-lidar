@@ -33,9 +33,22 @@ Due to the size of the arena, a common choice is:
 python3 sim_world.py <world_number> --y0=7.0
 ```
 
-Currently, the controller used to map LiDAR into body velocities and then wheel speeds are hard-coded. Also see `controllers.py`. You can modify the code to test your own controller.
+## XML File
+The simulation environment of the differential drive robot with LiDAR is defined in `differentialdrive.xml`. 
 
-The differential drive robot with LiDAR is defined in `differentialdrive.xml`. It loads in `currentxml.xml`, onto which the correct world is copied during execution.
+
+### Arena
+The chosen pre-stored `worlds/world_<world_number>.xml` is copied onto `currentxml.xml` by the `sim_world.py` code. The `differentialdrive.xml` file loads in `currentxml.xml`, bypassing the need to modify `differentialdrive.xml`. 
+
+### Control
+Currently, the controller used to map LiDAR readings into body velocities and then wheel speeds are hard-coded, using a controller defined in `controllers.py`. This controller uses a custom sensor-based controller together with a proportional controller acting on the heading error from the $y$-axis direction. You can modify the code to test your own controller, either directly in `sim_world.py` or by calling a new controller placed in `controllers.py`. 
+
+### Sensor readings
+The `data.sensordata` array currently has length $367$. The first $360$ entries are the readings from the range sensors, starting from $-180^{\circ}$ relative to forward to $+179^{\circ}$. The next seven floating point numbers are the pose of the `marker` site in the world frame. 
+
+To access LiDAR, `differentialdrive.xml` loads `lidar_frame.xml` and `lidar.xml`. These files currently define a $360$ degree field-of-view LiDAR with resolution of $1$ degree. 
+
+The LiDAR is built by rotating a `rangefinder` sensor about an axis in equal increments using the `<replicate>` tag. The LiDAR can be moved using options for the `<body>` tag in `lidar_frame.xml`. The LiDAR frame currently needs to be rotate by $90$ degrees relative to the world frame to get a horizontal set of rays. The range can be changed using the `cut-off` option in `lidar.xml`. The field-of-view and resolution can be modified by changing the number of replications and the angle increment appropriately. 
 
 ## Plots of a simulation
 The `sim_world.py` file generates three files with names containing the `<world_number>`. These can be processed to generate images using
