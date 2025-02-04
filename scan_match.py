@@ -112,18 +112,20 @@ def compute_ndt_score(scan, ndt_grid, grid_size):
     Returns:
         score (float): Negative log-likelihood score.
     """
-    score = 0
+    score = 0.0
+    d1, d2, d3 = 1.4663370687934272, 0.5643202489410892, 1.2039728043259361
     grid_indices = np.floor(scan / grid_size).astype(int)
 
     for point, idx in zip(scan, grid_indices):
         cell_key = tuple(idx)
         if cell_key in ndt_grid:
             mean, covariance = ndt_grid[cell_key]
+            v = point - mean # error of point from mean
+            d = v @ np.linalg.inv(covariance) @ np.transpose(v)
+            score += d3 - d1*exp(-0.5*d2*d)
             prob = multivariate_normal.pdf(point, mean=mean, cov=covariance)
-            if prob > 0:
-                score += np.log(prob)
 
-    return -score  # Negative log-likelihood
+    return score  # Negative log-likelihood
 
 def myeig(K):
     trK = K[0][0]+K[1][1]
@@ -143,139 +145,6 @@ def is_pd(K):
         return 1
     else:
         return 0
-
-def scan_match_translation(scan2, scan1,phi,grid_size):
-    """
-    Matches two 2D LiDAR scans, with corresponding points using a linear model
-
-    Returns:
-        transform (dict): Transformation parameters {"translation": (tx, ty), "rotation": theta}.
-    """
-    # Compute NDT grid for the reference scan
-    ndt_grid = compute_ndt_grid(scan2, grid_size)
-    Npts = len(scan1) ## number of points
-    ## We will solve a big linear system of equations, 2 equations per scan point:
-    ## A x = b ; A is 2*npts x 4 matrix; b is 2*npts  vector
-    ## We call them Amat, bvec in code
-    ## Initialize these matrices:
-    Amat = np.zeros((2*Npts,2)) 
-    bvec = np.zeros(2*Npts)
-    ## Build the rows of Amat, bvec
-    ## Our model for transform of a scan1 point x = [x1,x2] is  y_pred(x, parameters)  = [ r1 -r2; r2 r1] [x1 ; x2] + [t1;t2]
-    ## parameters are [t1,t2,r1,r2]
-    ## data are corresponding points x = [x1;x2], y = [y1;y2] in scan1 and scan2 respectively
-    ## We want to solve the two equations y_pred(x,parameter) = y for each point, which are two equations 
-    ## These two equations will look like [1 0 x1 -x2 ; 0 1 x2 x1] [t1;t2;r1;r2] = [y1;y2]
-    ## We have  2*N such equations, coming from N points. Stacking them up leads to A [t1;t2;r1;r2] = b, which we solve for [t1;t2;r1;r2]
-    count=0;
-    transformed_scan = transform_scan(scan1, 0.0, 0.0, phi)
-    grid_indices = np.floor(transformed_scan / grid_size).astype(int)
-
-
-    for point, idx in zip(transformed_scan, grid_indices):
-        cell_key = tuple(idx)
-        if cell_key in ndt_grid:
-            mean, covariance = ndt_grid[cell_key]
-            ## Constraint corresponding to loss term ( A x - b)^T SigmaInv (Ax  -b) 
-            maha_dist = (point-mean).T @ np.linalg.inv(covariance) @ (point-mean)
-            if maha_dist < 0.5:
-                sqrtcov = sqrtm(np.linalg.inv(covariance))
-                Amat[2*count-1] = sqrtcov[0][0] * np.array([1.0,0.0]) + sqrtcov[0][1] * np.array([0.0,1.0])
-                Amat[2*count] = sqrtcov[1][0] * np.array([1.0,0.0]) + sqrtcov[1][1] * np.array([0.0,1.0])
-                bvec[2*count-1] = sqrtcov[0][0] *mean[0] + sqrtcov[0][1] *mean[1]
-                bvec[2*count] = sqrtcov[1][0] *mean[0] + sqrtcov[1][1] *mean[1]
-                count+=1
-
-    ## Now, we can solve A x = b using x_solution = (A^T A)^{-1} A^T b = M^{-1} c as solve(M,c)
-    ## This expression for x_solution is the same as defining a loss function: as sum of 
-    ## Loss = sum_over_points (y_pred - y)^T (y_pred - y)
-    ## and solving the expression gradient_of_loss = 0 for the vector of parameters [t1;t2;r1;r2]
-    Asubmat = Amat[np.ix_(range(0,count),[0,1])]
-    bsubvec = bvec[np.ix_(range(0,count))]
-    sol = np.linalg.solve(Asubmat.T @ Asubmat, Asubmat.T @ bsubvec) # sol should be correct [t1,t2,cos(phi),sin(phi)]
-    # sol = np.linalg.solve(Amat.T @ Amat, Amat.T @ bvec) # sol should be correct [t1,t2,cos(phi),sin(phi)]
-    # sol=np.array([7.1,2.0]) ## temporary, checking plots etc before implement algo
-    # print(sol)
-    transformed_scan = transform_scan(scan1, sol[0], sol[1], phi)
-
-    fig = plt.figure();
-    ax = plt.subplot(111)
-    x_coords, y_coords = zip(*scan2)
-    ax.scatter(x_coords, y_coords,color='b')
-    x_coords, y_coords = zip(*scan1)
-    ax.scatter(x_coords, y_coords,color='r')
-    x_coords, y_coords = zip(*transformed_scan)
-    ax.scatter(x_coords, y_coords,color='c')
-    plt.show()
-    return {"translation": (sol[0], sol[1]), "rotation": phi}, np.array([[1.0,0.0],[0.0,1.0]])
-
-
-
-def scan_match_oneshot(scan2, scan1,grid_size):
-    """
-    Matches two 2D LiDAR scans, with corresponding points using a linear model
-
-    Returns:
-        transform (dict): Transformation parameters {"translation": (tx, ty), "rotation": theta}.
-    """
-    # Compute NDT grid for the reference scan
-    ndt_grid = compute_ndt_grid(scan2, grid_size)
-    Npts = len(scan1) ## number of points
-    ## We will solve a big linear system of equations, 2 equations per scan point:
-    ## A x = b ; A is 2*npts x 4 matrix; b is 2*npts  vector
-    ## We call them Amat, bvec in code
-    ## Initialize these matrices:
-    Amat = np.zeros((2*Npts,4)) 
-    bvec = np.zeros(2*Npts)
-    ## Build the rows of Amat, bvec
-    ## Our model for transform of a scan1 point x = [x1,x2] is  y_pred(x, parameters)  = [ r1 -r2; r2 r1] [x1 ; x2] + [t1;t2]
-    ## parameters are [t1,t2,r1,r2]
-    ## data are corresponding points x = [x1;x2], y = [y1;y2] in scan1 and scan2 respectively
-    ## We want to solve the two equations y_pred(x,parameter) = y for each point, which are two equations 
-    ## These two equations will look like [1 0 x1 -x2 ; 0 1 x2 x1] [t1;t2;r1;r2] = [y1;y2]
-    ## We have  2*N such equations, coming from N points. Stacking them up leads to A [t1;t2;r1;r2] = b, which we solve for [t1;t2;r1;r2]
-    count=0;
-    transformed_scan = transform_scan(scan1, 0.0, 0.0, 0.0)
-    grid_indices = np.floor(transformed_scan / grid_size).astype(int)
-
-
-    for point, idx in zip(transformed_scan, grid_indices):
-        cell_key = tuple(idx)
-        if cell_key in ndt_grid:
-            mean, covariance = ndt_grid[cell_key]
-            maha_dist = (point-mean).T @ np.linalg.inv(covariance) @ (point-mean)
-            if maha_dist < 1.0:
-                Amat[2*count-1] = np.array([1.0,0.0,point[0],-point[1]])
-                Amat[2*count] = np.array([0.0,1.0,point[1],point[0]])
-                bvec[2*count-1] = mean[0]
-                bvec[2*count] = mean[1]
-                count+=1
-
-    ## Now, we can solve A x = b using x_solution = (A^T A)^{-1} A^T b = M^{-1} c as solve(M,c)
-    ## This expression for x_solution is the same as defining a loss function: as sum of 
-    ## Loss = sum_over_points (y_pred - y)^T (y_pred - y)
-    ## and solving the expression gradient_of_loss = 0 for the vector of parameters [t1;t2;r1;r2]
-    Asubmat = Amat[np.ix_(range(0,count),[0,1,2,3])]
-    bsubvec = bvec[np.ix_(range(0,count))]
-    sol = np.linalg.solve(Asubmat.T @ Asubmat, Asubmat.T @ bsubvec) # sol should be correct [t1,t2,cos(phi),sin(phi)]
-    # sol = np.linalg.solve(Amat.T @ Amat, Amat.T @ bvec) # sol should be correct [t1,t2,cos(phi),sin(phi)]
-    # sol=np.array([7.1,2.0]) ## temporary, checking plots etc before implement algo
-    theta = atan2(sol[3],sol[2])
-    print(sol,theta)
-    transformed_scan = transform_scan(scan1, sol[0], sol[1], theta)
-
-    fig = plt.figure();
-    ax = plt.subplot(111)
-    x_coords, y_coords = zip(*scan2)
-    ax.scatter(x_coords, y_coords,color='b')
-    x_coords, y_coords = zip(*scan1)
-    ax.scatter(x_coords, y_coords,color='r')
-    x_coords, y_coords = zip(*transformed_scan)
-    ax.scatter(x_coords, y_coords,color='c')
-    plt.show()
-    return {"translation": (sol[0], sol[1]), "rotation": theta}, np.array([[1.0,0.0],[0.0,1.0]])
-
-
 
 def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0.0,ty_init=0.0,phi_init=0.0):
     """
@@ -305,6 +174,7 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
     prev_score2 = 0.0
     # fig = plt.figure();
     # ax = plt.subplot(111)
+    iterate_values = np.zeros(max_iters)
     for count in range(max_iters):
         transformed_scan = transform_scan(scan1, tx, ty, phi)
         Amat = np.zeros((3,3)) + 0.01 * np.diag([1.0,1.,1.0]) ## build the Hessian
@@ -334,19 +204,20 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
                     for j in range(3):
                         tempsquare[i][j] = tempvec[i]*tempvec[j]
                 Amat+=  e*d2/2 *tempsquare 
+        iterate_values[count] = score2
         ## Can add regularization here 
         ## Is isnotposdef(Amat)
         ## Amat += beta*Identity (beta = 0.5?)
-        # while is_pd(Amat) == 0:
-        #     Amat+=0.5*np.identity(3)
+        while is_pd(Amat) == 0:
+            Amat+=0.5*np.identity(3)
 
         # print(  np.linalg.inv(Amat) @ bvec)
         sol = np.linalg.inv(Amat) @ bvec
 
         ## This next step is gradient clipping 
-        norm_sol = np.linalg.norm(sol)
-        if norm_sol >0.2:
-            sol=sol/norm_sol*0.2
+        # norm_sol = np.linalg.norm(sol)
+        # if norm_sol >0.2:
+        #     sol=sol/norm_sol*0.2
         # sol[2]=0.0
         # print(count, "score1: ",score1, "score2: ",score2)
         # print("step:",sol, "step norm:",np.linalg.norm(sol))
@@ -368,9 +239,9 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
         #     alpha = c*alpha;
 
         # Update parameters using gradient ascent
-        tx -= grad_tx *   0.1 ## replace constant with alpha from back-tracking
-        ty -= grad_ty *   0.1
-        phi -= grad_phi * 0.1
+        tx -= grad_tx *  1 ## replace constant with alpha from back-tracking
+        ty -= grad_ty *   1
+        phi -= grad_phi * 1
         # print(tx,ty,phi)
         
         # x_coords, y_coords = zip(*transformed_scan)
@@ -399,6 +270,10 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
         prev_score2 = score2;
             
 
+    fig = plt.figure();
+    ax = plt.subplot(111)
+    plt.scatter(range(count),iterate_values[:count])
+    plt.show()
     # plt.show()
     # print("newton iterations: ",count)
         
