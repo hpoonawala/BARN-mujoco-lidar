@@ -231,26 +231,10 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
 
 
         ## Can use the ability to compute score to implement back-tracking line search here
-        alpha = 1;
+        alpha = 0.1;
         c = 0.5;
         b = 0.01;
 
-        score3 = compute_ndt_score(transformed_scan,ndt_grid,grid_indices)
-        transformed_scan_test = transform_scan(scan1, tx-alpha*grad_tx, ty-alpha*grad_ty, phi-alpha*grad_phi)
-        score_next = compute_ndt_score(transformed_scan_test,ndt_grid,grid_indices)
-        flag = score_next > score3 - b*alpha*(bvec.T @ sol) ## bvec.T @ sol is grad^T Hessian^{-1} grad, which is lambda^2. One criterion for stopping is lambda^2 <= 2 epsilon 
-        # print(score_next,score3,b*alpha*bvec.T @ sol,flag) 
-        # print(count," flag:",flag)
-        while (flag):
-            alpha=alpha*0.5
-            transformed_scan_test = transform_scan(scan1, tx-alpha*grad_tx, ty-alpha*grad_ty, phi-alpha*grad_phi)
-            score_next = compute_ndt_score(transformed_scan_test,ndt_grid,grid_indices)
-            flag = score_next > score3 - b*alpha*(bvec.T @ sol) ## bvec.T @ sol is grad^T Hessian^{-1} grad, which is lambda^2. One criterion for stopping is lambda^2 <= 2 epsilon 
-            # print(score_next,score3,b*alpha*bvec.T @ sol,flag) 
-
-        # while (Armijo condition is satisfied, terms computed here): ## f(x0 + alpha* dX) > f(x0) + b*alpha*gradf(x0)*dX implies reduce alpha
-        #     alpha = c*alpha;
-        print(alpha)
 
         # Update parameters using gradient ascent
         tx -= grad_tx * alpha ## replace constant with alpha from back-tracking
@@ -277,6 +261,9 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
         #         ax.plot([point[0],mean[0]],[point[1],mean[1]])
         # Check for convergence
         # print(bvec)
+        if np.linalg.norm(bvec.T @ sol) < 0.005:
+            print(count)
+            break
         if np.linalg.norm(bvec) < tol:
             break
         if count > 3 and abs(score2-prev_score2)<1e-4:
