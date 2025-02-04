@@ -3,7 +3,7 @@ from scipy.stats import multivariate_normal
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
-from math import exp, sin, cos, atan2
+from math import exp, sin, cos, atan2, log
 from scipy.linalg import sqrtm
 
 def confidence_ellipse(mu, cov, ax, n_std=3.0,facecolor='None',**kwargs):
@@ -177,7 +177,7 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
     iterate_values = np.zeros(max_iters)
     for count in range(max_iters):
         transformed_scan = transform_scan(scan1, tx, ty, phi)
-        Amat = np.zeros((3,3)) + 0.01 * np.diag([1.0,1.,1.0]) ## build the Hessian
+        Amat = np.zeros((3,3)) + 0.00 * np.diag([1.0,1.,1.0]) ## build the Hessian
         bvec = np.zeros(3) ## build the gradient
 
         grid_indices = np.floor(transformed_scan / grid_size).astype(int)
@@ -204,7 +204,8 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
                     for j in range(3):
                         tempsquare[i][j] = tempvec[i]*tempvec[j]
                 Amat+=  e*d2/2 *tempsquare 
-        iterate_values[count] = score2
+        if score2 > 0: 
+            iterate_values[count] = log(score2)
         ## Can add regularization here 
         ## Is isnotposdef(Amat)
         ## Amat += beta*Identity (beta = 0.5?)
@@ -230,18 +231,31 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
 
 
         ## Can use the ability to compute score to implement back-tracking line search here
-        alpha = 1.0;
+        alpha = 1;
         c = 0.5;
-        b = 0.2;
+        b = 0.01;
 
+        score3 = compute_ndt_score(transformed_scan,ndt_grid,grid_indices)
+        transformed_scan_test = transform_scan(scan1, tx-alpha*grad_tx, ty-alpha*grad_ty, phi-alpha*grad_phi)
+        score_next = compute_ndt_score(transformed_scan_test,ndt_grid,grid_indices)
+        flag = score_next > score3 - b*alpha*(bvec.T @ sol) ## bvec.T @ sol is grad^T Hessian^{-1} grad, which is lambda^2. One criterion for stopping is lambda^2 <= 2 epsilon 
+        # print(score_next,score3,b*alpha*bvec.T @ sol,flag) 
+        # print(count," flag:",flag)
+        while (flag):
+            alpha=alpha*0.5
+            transformed_scan_test = transform_scan(scan1, tx-alpha*grad_tx, ty-alpha*grad_ty, phi-alpha*grad_phi)
+            score_next = compute_ndt_score(transformed_scan_test,ndt_grid,grid_indices)
+            flag = score_next > score3 - b*alpha*(bvec.T @ sol) ## bvec.T @ sol is grad^T Hessian^{-1} grad, which is lambda^2. One criterion for stopping is lambda^2 <= 2 epsilon 
+            # print(score_next,score3,b*alpha*bvec.T @ sol,flag) 
 
         # while (Armijo condition is satisfied, terms computed here): ## f(x0 + alpha* dX) > f(x0) + b*alpha*gradf(x0)*dX implies reduce alpha
         #     alpha = c*alpha;
+        print(alpha)
 
         # Update parameters using gradient ascent
-        tx -= grad_tx *  1 ## replace constant with alpha from back-tracking
-        ty -= grad_ty *   1
-        phi -= grad_phi * 1
+        tx -= grad_tx * alpha ## replace constant with alpha from back-tracking
+        ty -= grad_ty *   alpha
+        phi -= grad_phi * alpha
         # print(tx,ty,phi)
         
         # x_coords, y_coords = zip(*transformed_scan)
@@ -270,10 +284,11 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
         prev_score2 = score2;
             
 
-    fig = plt.figure();
-    ax = plt.subplot(111)
-    plt.scatter(range(count),iterate_values[:count])
-    plt.show()
+    # fig = plt.figure();
+    # ax = plt.subplot(111)
+    # plt.scatter(range(count),iterate_values[:count])
+    # plt.yscale('log')
+    # plt.show()
     # plt.show()
     # print("newton iterations: ",count)
         
