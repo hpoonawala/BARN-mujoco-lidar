@@ -216,9 +216,9 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
         sol = np.linalg.inv(Amat) @ bvec
 
         ## This next step is gradient clipping 
-        # norm_sol = np.linalg.norm(sol)
-        # if norm_sol >0.2:
-        #     sol=sol/norm_sol*0.2
+        norm_sol = np.linalg.norm(sol)
+        if norm_sol >0.2:
+            sol=sol/norm_sol*0.2
         # sol[2]=0.0
         # print(count, "score1: ",score1, "score2: ",score2)
         # print("step:",sol, "step norm:",np.linalg.norm(sol))
