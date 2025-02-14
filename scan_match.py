@@ -5,6 +5,10 @@ from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
 from math import exp, sin, cos, atan2, log
 from scipy.linalg import sqrtm
+import time
+
+ID2 = np.array([[1.0,0.0],[0.0,1.0]])
+ID3 = np.array([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])
 
 def confidence_ellipse(mu, cov, ax, n_std=3.0,facecolor='None',**kwargs):
     """
@@ -78,7 +82,7 @@ def compute_ndt_grid(scan, grid_size):
             mean = np.mean(cell_points, axis=0)
             covariance = np.cov(cell_points.T)
             # Regularize covariance to avoid singular matrices
-            covariance += np.eye(2) * 1e-6
+            covariance += ID2 * 1e-6
             # eig1, eig2, v1, v2 = myeig(covariance)
             # if eig1/eig2+eig2/eig1 > 200:
             ndt_grid[tuple(idx)] = (mean, covariance)
@@ -99,6 +103,12 @@ def transform_scan(scan, tx, ty, phi):
     """
     rotation = np.array([[np.cos(phi), -np.sin(phi)], [np.sin(phi),  np.cos(phi)]])
     return (rotation @ scan.T).T + np.array([tx, ty])
+
+def compute_ndt_score_transform(x,y, scan, ndt_grid, grid_size):
+    transformed_scan = transform_scan(scan, x, y, 0.0)
+    grid_indices = np.floor(transformed_scan / grid_size).astype(int)
+    score3 = compute_ndt_score(transformed_scan,ndt_grid,grid_size)
+
 
 def compute_ndt_score(scan, ndt_grid, grid_size):
     """
@@ -146,7 +156,7 @@ def is_pd(K):
     else:
         return 0
 
-def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0.0,ty_init=0.0,phi_init=0.0):
+def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=30, tol=1e-6,tx_init=0.0,ty_init=0.0,phi_init=0.0):
     """
     Matches two 2D LiDAR scans using the Normal Distributions Transform (NDT).
 
@@ -162,6 +172,8 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
     """
     # Compute NDT grid for the reference scan
     ndt_grid = compute_ndt_grid(scan2, grid_size)
+    theta_vals=[]
+    grid_indices = np.floor(scan1 / grid_size).astype(int)
 
     # Initialize parameters
     tx, ty, phi = tx_init,ty_init,phi_init
@@ -174,16 +186,16 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
     prev_score2 = 0.0
     # fig = plt.figure();
     # ax = plt.subplot(111)
+    grid_indices = np.floor(scan1 / grid_size).astype(int)
     iterate_values = np.zeros(max_iters)
     for count in range(max_iters):
         transformed_scan = transform_scan(scan1, tx, ty, phi)
-        Amat = np.zeros((3,3)) + 0.00 * np.diag([1.0,1.,1.0]) ## build the Hessian
+        Amat = np.zeros((3,3))  ## build the Hessian
         bvec = np.zeros(3) ## build the gradient
 
-        grid_indices = np.floor(transformed_scan / grid_size).astype(int)
         score1 = 0.0
         score2 = 0.0
-        
+        start_time = time.perf_counter()
         for point, idx in zip(transformed_scan, grid_indices):
             cell_key = tuple(idx)
             if cell_key in ndt_grid:
@@ -204,13 +216,23 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
                     for j in range(3):
                         tempsquare[i][j] = tempvec[i]*tempvec[j]
                 Amat+=  e*d2/2 *tempsquare 
+
+        # end_time = time.perf_counter()
+        # execution_time = end_time - start_time
+        # print(f"Execution time: {execution_time:.4f} seconds")
         if score2 > 0: 
             iterate_values[count] = log(score2)
         ## Can add regularization here 
         ## Is isnotposdef(Amat)
         ## Amat += beta*Identity (beta = 0.5?)
-        while is_pd(Amat) == 0:
-            Amat+=0.5*np.identity(3)
+
+        while True:
+            try:
+                L = np.linalg.cholesky(Amat)
+            except np.linalg.LinAlgError:
+                Amat+=0.5*ID3
+            else:
+                break
 
         # print(  np.linalg.inv(Amat) @ bvec)
         sol = np.linalg.inv(Amat) @ bvec
@@ -231,10 +253,26 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
 
 
         ## Can use the ability to compute score to implement back-tracking line search here
-        alpha = 0.1;
+        alpha = 1;
         c = 0.5;
         b = 0.01;
 
+        score3 = compute_ndt_score(transformed_scan,ndt_grid,grid_size)
+        transformed_scan_test = transform_scan(scan1, tx-alpha*grad_tx, ty-alpha*grad_ty, phi-alpha*grad_phi)
+        score_next = compute_ndt_score(transformed_scan_test,ndt_grid,grid_size)
+        flag = score_next > score3 - b*alpha*(bvec.T @ sol) ## bvec.T @ sol is grad^T Hessian^{-1} grad, which is lambda^2. One criterion for stopping is lambda^2 <= 2 epsilon 
+        # print(score_next,score3,b*alpha*bvec.T @ sol,flag) 
+        # print(count," flag:",flag)
+        while (flag):
+            alpha=alpha*c
+            transformed_scan_test = transform_scan(scan1, tx-alpha*grad_tx, ty-alpha*grad_ty, phi-alpha*grad_phi)
+            score_next = compute_ndt_score(transformed_scan_test,ndt_grid,grid_size)
+            flag = score_next > score3 - b*alpha*(bvec.T @ sol) ## bvec.T @ sol is grad^T Hessian^{-1} grad, which is lambda^2. One criterion for stopping is lambda^2 <= 2 epsilon 
+            # print(score_next,score3,b*alpha*bvec.T @ sol,flag) 
+
+        # while (Armijo condition is satisfied, terms computed here): ## f(x0 + alpha* dX) > f(x0) + b*alpha*gradf(x0)*dX implies reduce alpha
+        #     alpha = c*alpha;
+        # print(alpha)
 
         # Update parameters using gradient ascent
         tx -= grad_tx * alpha ## replace constant with alpha from back-tracking
@@ -260,9 +298,9 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
         #         mean, covariance = ndt_grid[cell_key]
         #         ax.plot([point[0],mean[0]],[point[1],mean[1]])
         # Check for convergence
-        # print(bvec)
-        if np.linalg.norm(bvec.T @ sol) < 0.005:
-            print(count)
+        # if bvec.T @ sol < 0.01:
+        #     break
+        if abs(bvec.T @ sol) < 0.01:
             break
         if np.linalg.norm(bvec) < tol:
             break
@@ -271,11 +309,11 @@ def ndt_scan_match_hp(scan2, scan1, grid_size, max_iters=250, tol=1e-6,tx_init=0
         prev_score2 = score2;
             
 
+    print(count)
     # fig = plt.figure();
     # ax = plt.subplot(111)
     # plt.scatter(range(count),iterate_values[:count])
     # plt.yscale('log')
-    # plt.show()
     # plt.show()
     # print("newton iterations: ",count)
         

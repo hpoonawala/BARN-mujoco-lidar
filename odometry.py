@@ -40,15 +40,17 @@ def match_consecutive_scans(sensors,poses,args):
     """
     # Gets a sequence of relative poses using the Normal Distribution Transform for scan matching
     """ 
+    grid_size=2.0
     manual_rel_poses = np.zeros((len(sensors),3)) ## pose differences using scan matching
     for i in range(1,len(sensors)): ## pair-wise comparison here
         print(f"Match {i} and {i-1}")
         if len(sensors[i-1])>0 and len(sensors[i])>0: ## non-trivial returns
+            ## slam.relative_transform
             dx = (poses[i][0]-poses[i-1][0])*(cos(poses[i-1][2]))+(poses[i][1]-poses[i-1][1])*(sin(poses[i-1][2]))
             dy = -(poses[i][0]-poses[i-1][0])*(sin(poses[i-1][2]))+(poses[i][1]-poses[i-1][1])*(cos(poses[i-1][2]))
             dt = poses[i][2]-poses[i-1][2]
             print("true rel pose",dx,dy,dt)
-            match_result, match_cov=scan_match.ndt_scan_match_hp(sensors[i],sensors[i-1],2.0) ## find parameters needed to push prev scan to current scan
+            match_result, match_cov=scan_match.ndt_scan_match_hp(sensors[i],sensors[i-1],grid_size) ## find parameters needed to push prev scan to current scan
             manual_rel_poses[i][0] = match_result["translation"][0] 
             manual_rel_poses[i][1] = match_result["translation"][1]
             manual_rel_poses[i][2] = match_result["rotation"]
@@ -65,7 +67,7 @@ def match_consecutive_scans(sensors,poses,args):
             # transformed_scan=scan_match.transform_scan(sensors[i-1],match_result["translation"][0],match_result["translation"][1],match_result["rotation"])
             # fig = plt.figure();
             # ax = plt.subplot(111)
-            # ndt_grid = scan_match.compute_ndt_grid(sensors[i], 2.0)
+            # ndt_grid = scan_match.compute_ndt_grid(sensors[i], grid_size)
             # for g in ndt_grid:
             #     scan_match.confidence_ellipse(ndt_grid[g][0],ndt_grid[g][1] , ax,3,alpha=0.5, facecolor='pink')
             #     ax.scatter(ndt_grid[g][0][0],ndt_grid[g][0][1],color='y')
@@ -135,11 +137,15 @@ def main(args) -> None:
         ax.scatter(p[0],p[1],color='r')
         ax.scatter(o[0],o[1],color='b')
 
+    for scan,pose in zip(scanlist,odom_poses):
+        transformed_scan=scan_match.transform_scan(scan,pose[0],pose[1],pose[2]) ## this was better than dxi,dyi,dti
+        x, y = zip(*transformed_scan) 
+        ax.scatter(x,y,color='y')
     ax.scatter(poselist[0][0],poselist[0][1],color='r',label="ground truth")
     ax.scatter(odom_poses[0][0],odom_poses[0][1],color='b',label="odometry")
     plt.legend()
     fig.savefig(args.prefix+str(args.fnum)+'_odomplot.png')
-    plt.show()
+    # plt.show()
 
     # scanlist, poselist, rel_poses = load_rel_odom(args) 
 
